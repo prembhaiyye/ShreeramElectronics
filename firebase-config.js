@@ -23,6 +23,12 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export let analytics = null;
 export const auth = getAuth(app);
+
+// Admin UID (provided by user)
+export const ADMIN_UID = 'k3fh6cMV94Ya1f8S4ooLFI5UIXF3';
+export function isAdminUser(user) {
+  return !!(user && user.uid === ADMIN_UID);
+}
 try {
   const supported = await analyticsIsSupported();
   if (supported) {

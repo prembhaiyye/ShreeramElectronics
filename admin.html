@@ -119,12 +119,15 @@
 <body>
 
 <!-- Login Check -->
-<script>
-  window.onload = function() {
-    if(sessionStorage.getItem("isAdminLoggedIn") !== "true"){
-      window.location.href = "admin-login.html";
-    }
-  }
+<script type="module">
+  import { observeAuth, isAdminUser } from './firebase-config.js';
+  window.addEventListener('DOMContentLoaded', () => {
+    observeAuth(user => {
+      if (!isAdminUser(user)) {
+        window.location.href = 'admin-login.html';
+      }
+    });
+  });
 </script>
 
 <header>🛠 Admin Panel</header>
