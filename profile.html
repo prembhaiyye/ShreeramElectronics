@@ -130,6 +130,25 @@
     .btn.secondary { background: #007bff; }
     .btn.danger { background: #e74c3c; }
     .empty { color: #666; text-align: center; padding: 10px 0; }
+
+    /* Sign-in prompt */
+    .signin-prompt {
+      margin: 0 20px 20px 20px;
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .signin-prompt button {
+      margin-top: 8px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -143,6 +162,15 @@
     <p id="userEmail">Not signed in</p>
   </div>
 
+  <!-- Sign-in Prompt (shown when signed out) -->
+  <div id="signinPrompt" class="signin-prompt" style="display:none;">
+    You are not signed in. Sign in to see your orders, wishlist, and cart.
+    <div>
+      <button id="goLoginBtn">🔐 Login / Register</button>
+      <a href="admin-login.html" style="margin-left:8px;">🛠 Admin Login</a>
+    </div>
+  </div>
+
   <!-- Profile Options -->
   <div class="options">
     <a href="#">📦 My Orders</a>
@@ -150,6 +178,7 @@
     <a href="#cart">🛒 My Cart</a>
     <a href="#" id="logoutLink">🚪 Logout</a>
     <a href="auth.html" id="loginLink" style="display:none;">🔐 Login / Register</a>
+    <a href="admin-login.html" id="adminLoginLink">🛠 Admin Login</a>
   </div>
 
   <!-- Wishlist Section -->
@@ -188,22 +217,30 @@
       currentUser = user;
       const logoutLink = document.getElementById('logoutLink');
       const loginLink = document.getElementById('loginLink');
+      const signinPrompt = document.getElementById('signinPrompt');
       if(user){
         document.getElementById('userEmail').textContent = user.email || 'Logged in';
         logoutLink.style.display = 'block';
         loginLink.style.display = 'none';
+        signinPrompt.style.display = 'none';
         await renderWishlist();
         await renderCartPreview();
       } else {
         document.getElementById('userEmail').textContent = 'Not signed in';
         logoutLink.style.display = 'none';
         loginLink.style.display = 'block';
+        signinPrompt.style.display = 'block';
       }
     });
 
     document.getElementById('logoutLink').addEventListener('click', async (e) => {
       e.preventDefault();
       await logout();
+      window.location.href = 'auth.html';
+    });
+
+    document.getElementById('goLoginBtn').addEventListener('click', () => {
+      sessionStorage.setItem('postLoginRedirect', 'profile.html');
       window.location.href = 'auth.html';
     });
 
