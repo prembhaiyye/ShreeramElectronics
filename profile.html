@@ -138,9 +138,9 @@
 
   <!-- Profile Info -->
   <div class="profile">
-    <img src="https://via.placeholder.com/100" alt="User Profile">
-    <h2>John Doe</h2>
-    <p>johndoe@example.com</p>
+    <img id="avatar" src="https://via.placeholder.com/100" alt="User Profile">
+    <h2 id="userName">Guest</h2>
+    <p id="userEmail">Not signed in</p>
   </div>
 
   <!-- Profile Options -->
@@ -148,8 +148,8 @@
     <a href="#">📦 My Orders</a>
     <a href="#wishlist">❤ My Wishlist</a>
     <a href="#cart">🛒 My Cart</a>
-    <a href="#">⚙ Account Settings</a>
-    <a href="#">🚪 Logout</a>
+    <a href="#" id="logoutLink">🚪 Logout</a>
+    <a href="auth.html" id="loginLink" style="display:none;">🔐 Login / Register</a>
   </div>
 
   <!-- Wishlist Section -->
@@ -178,41 +178,61 @@
     <a href="cart.html"><span>🧺</span>Cart</a>
   </nav>
 
-  <script>
-    function getList(key){
-      try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch(e){ return []; }
-    }
-    function saveList(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+  <script type="module">
+    import { observeAuth, logout, fetchUserWishlist, fetchUserCart, moveWishlistItemToCart, db } from './firebase-config.js';
 
-    function formatINR(value){ return "₹" + Number(String(value).replace(/[^0-9.]/g, ''));
-    }
+    function formatINR(value){ return "₹" + Number(String(value).replace(/[^0-9.]/g, '')); }
 
-    function renderWishlist(){
+    let currentUser = null;
+    observeAuth(async (user) => {
+      currentUser = user;
+      const logoutLink = document.getElementById('logoutLink');
+      const loginLink = document.getElementById('loginLink');
+      if(user){
+        document.getElementById('userEmail').textContent = user.email || 'Logged in';
+        logoutLink.style.display = 'block';
+        loginLink.style.display = 'none';
+        await renderWishlist();
+        await renderCartPreview();
+      } else {
+        document.getElementById('userEmail').textContent = 'Not signed in';
+        logoutLink.style.display = 'none';
+        loginLink.style.display = 'block';
+      }
+    });
+
+    document.getElementById('logoutLink').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await logout();
+      window.location.href = 'auth.html';
+    });
+
+    async function renderWishlist(){
       const grid = document.getElementById('wishlistGrid');
       const empty = document.getElementById('wishlistEmpty');
-      const items = getList('wishlist');
+      const items = await fetchUserWishlist(currentUser);
       grid.innerHTML = '';
       if(!items.length){ empty.style.display = 'block'; return; }
       empty.style.display = 'none';
-      items.forEach((p, idx) => {
+      items.forEach((p) => {
         const priceNum = Number(String(p.price).replace(/[^0-9.]/g, '')) || 0;
         grid.innerHTML += `
           <div class="card">
             <img src="${p.image || 'https://via.placeholder.com/150'}" alt="${p.name}">
             <h3>${p.name}</h3>
             <div class="price">${priceNum ? '₹' + priceNum : ''}</div>
-            <button class="btn secondary" onclick="moveToCart(${idx})">Add to Cart</button>
-            <button class="btn danger" onclick="removeFromWishlist(${idx})">Remove</button>
+            <button class="btn secondary" onclick="window.moveToCart('${p.name}')">Add to Cart</button>
+            <button class="btn danger" onclick="window.removeFromWishlist('${p.name}')">Remove</button>
           </div>
         `;
       });
     }
 
-    function renderCartPreview(){
+    async function renderCartPreview(){
       const grid = document.getElementById('cartGrid');
       const empty = document.getElementById('cartEmpty');
       const actions = document.getElementById('cartActions');
-      const items = getList('cart');
+      const items = await fetchUserCart(currentUser);
       grid.innerHTML = '';
       if(!items.length){ empty.style.display = 'block'; actions.style.display = 'none'; return; }
       empty.style.display = 'none'; actions.style.display = 'block';
@@ -228,31 +248,18 @@
       });
     }
 
-    function removeFromWishlist(index){
-      const list = getList('wishlist');
-      list.splice(index, 1);
-      saveList('wishlist', list);
-      renderWishlist();
+    window.removeFromWishlist = async function(name){
+      // Delete wishlist doc directly
+      const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+      await deleteDoc(doc(db, 'users', currentUser.uid, 'wishlist', name));
+      await renderWishlist();
     }
 
-    function moveToCart(index){
-      const wishlist = getList('wishlist');
-      const item = wishlist[index];
-      const cart = getList('cart');
-      const existing = cart.findIndex(c => c.name === item.name);
-      if(existing >= 0){ cart[existing].qty = (cart[existing].qty || 1) + 1; }
-      else { cart.push({ ...item, qty: 1 }); }
-      saveList('cart', cart);
-      wishlist.splice(index, 1);
-      saveList('wishlist', wishlist);
-      renderWishlist();
-      renderCartPreview();
+    window.moveToCart = async function(name){
+      await moveWishlistItemToCart(currentUser, name);
+      await renderWishlist();
+      await renderCartPreview();
     }
-
-    document.addEventListener('DOMContentLoaded', function(){
-      renderWishlist();
-      renderCartPreview();
-    });
   </script>
 </body>
 </html>

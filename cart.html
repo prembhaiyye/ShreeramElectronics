@@ -173,30 +173,30 @@
     <a href="cart.html" class="active">🛒 Cart</a>
   </nav>
 
-  <script>
-    function getCart(){
-      try {
-        return JSON.parse(localStorage.getItem("cart") || "[]");
-      } catch(e){
-        return [];
+  <script type="module">
+    import { observeAuth, fetchUserCart, updateUserCartQty, removeUserCartItem } from './firebase-config.js';
+    let currentUser = null;
+    observeAuth(async user => {
+      currentUser = user;
+      if(!user){
+        sessionStorage.setItem('postLoginRedirect', 'cart.html');
+        window.location.href = 'auth.html';
+        return;
       }
-    }
-
-    function saveCart(items){
-      localStorage.setItem("cart", JSON.stringify(items));
-    }
+      await renderCart();
+    });
 
     function formatINR(value){
       return "₹" + value.toLocaleString('en-IN');
     }
 
-    function renderCart(){
+    async function renderCart(){
       const listEl = document.getElementById("cart-list");
       const emptyEl = document.getElementById("empty-state");
       const summaryEl = document.getElementById("summary");
       const totalPriceEl = document.getElementById("total-price");
 
-      const items = getCart();
+      const items = await fetchUserCart(currentUser);
       listEl.innerHTML = "";
 
       if(items.length === 0){
@@ -219,10 +219,10 @@
               <h3>${item.name}</h3>
               <div class="price">${formatINR(priceNumber)}</div>
               <div class="qty-controls">
-                <button onclick="decrement(${index})">-</button>
+                <button onclick="window.decrement('${item.name}', ${item.qty || 1})">-</button>
                 <span id="qty-${index}">${item.qty || 1}</span>
-                <button onclick="increment(${index})">+</button>
-                <button class="remove-btn" onclick="removeItem(${index})">Remove</button>
+                <button onclick="window.increment('${item.name}', ${item.qty || 1})">+</button>
+                <button class="remove-btn" onclick="window.removeItem('${item.name}')">Remove</button>
               </div>
             </div>
             <div style="text-align:right;">
@@ -236,37 +236,15 @@
       totalPriceEl.textContent = formatINR(total);
     }
 
-    function increment(index){
-      const items = getCart();
-      items[index].qty = (items[index].qty || 1) + 1;
-      saveCart(items);
-      renderCart();
-    }
-
-    function decrement(index){
-      const items = getCart();
-      const current = items[index].qty || 1;
-      if(current > 1){
-        items[index].qty = current - 1;
-      } else {
-        items.splice(index, 1);
-      }
-      saveCart(items);
-      renderCart();
-    }
-
-    function removeItem(index){
-      const items = getCart();
-      items.splice(index, 1);
-      saveCart(items);
-      renderCart();
-    }
+    window.increment = async function(name, qty){ await updateUserCartQty(currentUser, name, (qty || 1) + 1); await renderCart(); }
+    window.decrement = async function(name, qty){ const next = (qty || 1) - 1; await updateUserCartQty(currentUser, name, next); await renderCart(); }
+    window.removeItem = async function(name){ await removeUserCartItem(currentUser, name); await renderCart(); }
 
     function checkout(){
       alert("Checkout not implemented. This is a demo page.");
     }
 
-    document.addEventListener('DOMContentLoaded', renderCart);
+    // rendering is triggered by auth observer
   </script>
 
 </body>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login / Register - Shreeram Computers</title>
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; background:#f4f4f9; }
+    header { background:#2c3e50; color:#fff; padding:15px; text-align:center; font-size:1.4em; }
+    .wrap { max-width:420px; margin:20px auto; background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1); padding:20px; }
+    h2 { margin:0 0 10px 0; font-size:1.2em; }
+    label { display:block; margin:10px 0 5px; font-weight:bold; }
+    input { width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; }
+    button { margin-top:12px; width:100%; padding:10px; border:none; border-radius:6px; background:#2c3e50; color:#fff; cursor:pointer; font-size:1em; }
+    .alt { margin-top:8px; background:#007bff; }
+    .msg { margin-top:10px; color:#e74c3c; min-height:20px; }
+    .hint { font-size:0.9em; color:#666; margin-top:10px; }
+    .links { text-align:center; margin-top:12px; }
+    .links a { color:#007bff; text-decoration:none; }
+  </style>
+  <script type="module">
+    import { registerWithEmailPassword, loginWithEmailPassword, observeAuth } from './firebase-config.js';
+
+    window.addEventListener('DOMContentLoaded', () => {
+      observeAuth(user => {
+        if (user) {
+          const redirect = sessionStorage.getItem('postLoginRedirect') || 'index.html';
+          sessionStorage.removeItem('postLoginRedirect');
+          window.location.href = redirect;
+        }
+      });
+
+      const formLogin = document.getElementById('login-form');
+      const formReg = document.getElementById('register-form');
+      const msg = document.getElementById('msg');
+
+      formLogin.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        msg.textContent = '';
+        const email = document.getElementById('login-email').value.trim();
+        const pass = document.getElementById('login-pass').value;
+        try { await loginWithEmailPassword(email, pass); }
+        catch (err) { msg.textContent = err.message; }
+      });
+
+      formReg.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        msg.textContent = '';
+        const email = document.getElementById('reg-email').value.trim();
+        const pass = document.getElementById('reg-pass').value;
+        try { await registerWithEmailPassword(email, pass); }
+        catch (err) { msg.textContent = err.message; }
+      });
+    });
+  </script>
+</head>
+<body>
+  <header>Login / Register</header>
+  <div class="wrap">
+    <h2>Login</h2>
+    <form id="login-form">
+      <label>Email</label>
+      <input type="email" id="login-email" required>
+      <label>Password</label>
+      <input type="password" id="login-pass" required>
+      <button type="submit">Sign In</button>
+    </form>
+
+    <div class="hint">New here?</div>
+
+    <h2 style="margin-top:14px;">Register</h2>
+    <form id="register-form">
+      <label>Email</label>
+      <input type="email" id="reg-email" required>
+      <label>Password</label>
+      <input type="password" id="reg-pass" required minlength="6">
+      <button type="submit" class="alt">Create Account</button>
+    </form>
+
+    <div id="msg" class="msg"></div>
+    <div class="links"><a href="index.html">← Back to Home</a></div>
+  </div>
+</body>
+</html>
+
+

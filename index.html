@@ -166,7 +166,7 @@
   </nav>
 
   <script type="module">
-    import { fetchLatestProducts, fetchCategories } from './firebase-config.js';
+    import { fetchLatestProducts, fetchCategories, observeAuth, addToUserCart, addToUserWishlist } from './firebase-config.js';
 
     function truncate(text, max){
       if(!text) return '';
@@ -212,22 +212,19 @@
       });
     }
 
-    window.addToWishlist = function(pStr){
+    let currentUser = null;
+    observeAuth(u => { currentUser = u; });
+
+    window.addToWishlist = async function(pStr){
       const p = JSON.parse(decodeURIComponent(pStr));
-      const list = JSON.parse(localStorage.getItem('wishlist') || '[]');
-      if(!list.find(x => x.name === p.name)) list.push({ name: p.name, price: p.price, image: p.image });
-      localStorage.setItem('wishlist', JSON.stringify(list));
-      window.location.href = 'profile.html#wishlist';
+      if(!currentUser){ sessionStorage.setItem('postLoginRedirect', window.location.href); window.location.href = 'auth.html'; return; }
+      try { await addToUserWishlist(currentUser, p); window.location.href = 'profile.html#wishlist'; } catch(e){ alert(e.message); }
     }
 
-    window.addToCart = function(pStr){
+    window.addToCart = async function(pStr){
       const p = JSON.parse(decodeURIComponent(pStr));
-      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-      const idx = cart.findIndex(x => x.name === p.name);
-      if(idx >= 0){ cart[idx].qty = (cart[idx].qty || 1) + 1; }
-      else { cart.push({ name: p.name, price: p.price, image: p.image, qty: 1 }); }
-      localStorage.setItem('cart', JSON.stringify(cart));
-      window.location.href = 'cart.html';
+      if(!currentUser){ sessionStorage.setItem('postLoginRedirect', 'cart.html'); window.location.href = 'auth.html'; return; }
+      try { await addToUserCart(currentUser, p); window.location.href = 'cart.html'; } catch(e){ alert(e.message); }
     }
 
     document.addEventListener('DOMContentLoaded', function(){
