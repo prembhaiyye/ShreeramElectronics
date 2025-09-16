@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sale - Shreeram Computers</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      padding-bottom: 70px; /* space for bottom nav */
+    }
+
+    header {
+      background: #222;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    section {
+      padding: 20px;
+    }
+
+    section h2 {
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 15px;
+    }
+
+    .product-card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .product-card:hover {
+      transform: scale(1.05);
+    }
+
+    .product-card img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 10px;
+    }
+
+    .price {
+      font-size: 16px;
+      color: green;
+      margin: 8px 0;
+    }
+
+    .old-price {
+      color: red;
+      text-decoration: line-through;
+      margin-right: 5px;
+    }
+
+    button {
+      margin: 5px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    /* Bottom Navigation */
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #222;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 0;
+      color: white;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    nav a.active {
+      color: #00bfff;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <header>💰 Sale - Shreeram Computers</header>
+
+  <!-- Hot Deals -->
+  <section>
+    <h2>🔥 Hot Deals</h2>
+    <div class="product-grid">
+      <div class="product-card">
+        <img src="chip.png" alt="Arduino Uno">
+        <h3>Arduino UNO</h3>
+        <div class="price"><span class="old-price">₹399</span> ₹349</div>
+        <button>❤ Wishlist</button>
+        <button>🛒 Add to Cart</button>
+      </div>
+      <div class="product-card">
+        <img src="resistor.png" alt="Resistor Pack">
+        <h3>10kΩ Resistor Pack</h3>
+        <div class="price"><span class="old-price">₹60</span> ₹40</div>
+        <button>❤ Wishlist</button>
+        <button>🛒 Add to Cart</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Clearance Sale -->
+  <section>
+    <h2>🧹 Clearance Sale</h2>
+    <div class="product-grid">
+      <div class="product-card">
+        <img src="ic-chip.png" alt="LM358 IC">
+        <h3>LM358 IC</h3>
+        <div class="price"><span class="old-price">₹25</span> ₹15</div>
+        <button>❤ Wishlist</button>
+        <button>🛒 Add to Cart</button>
+      </div>
+      <div class="product-card">
+        <img src="capacitor.png" alt="470uF Capacitor">
+        <h3>470uF Capacitor</h3>
+        <div class="price"><span class="old-price">₹15</span> ₹10</div>
+        <button>❤ Wishlist</button>
+        <button>🛒 Add to Cart</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom Navigation -->
+  <nav>
+    <a href="index.html">🏠 Home</a>
+    <a href="categories.html">📂 Categories</a>
+    <a href="sale.html" class="active">💰 Sale</a>
+    <a href="profile.html">👤 Profile</a>
+  </nav>
+
+</body>
+</html>

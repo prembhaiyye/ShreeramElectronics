@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shreeram Electronics - Admin Panel</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      color: #333;
+      padding: 20px;
+    }
+
+    header {
+      background: #2c3e50;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      margin-top: 20px;
+      color: #2c3e50;
+      font-size: 1.2em;
+    }
+
+    form {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    form label {
+      display: block;
+      margin-top: 10px;
+      font-size: 0.9em;
+      font-weight: bold;
+    }
+
+    form input, form select, form textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.9em;
+    }
+
+    form button {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background: #2c3e50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+
+    form button:hover {
+      background: #1a242f;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 10px;
+      text-align: center;
+    }
+    .card img {
+      width: 100%;
+      height: 120px;
+      object-fit: contain;
+    }
+    .card h3 {
+      margin: 10px 0 5px;
+      font-size: 1em;
+    }
+    .card p {
+      font-size: 0.85em;
+      color: #666;
+    }
+    .price {
+      font-weight: bold;
+      color: #e74c3c;
+    }
+
+    /* Logout Button */
+    #logoutBtn {
+      padding: 10px 15px;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1em;
+      margin-top: 20px;
+    }
+    #logoutBtn:hover {
+      background: #c0392b;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Login Check -->
+<script>
+  window.onload = function() {
+    if(sessionStorage.getItem("isAdminLoggedIn") !== "true"){
+      window.location.href = "admin-login.html";
+    }
+  }
+</script>
+
+<header>🛠 Admin Panel</header>
+
+<!-- Add Category -->
+<h2>Add New Category</h2>
+<form id="categoryForm">
+  <label>Category Name</label>
+  <input type="text" id="catName" placeholder="e.g. Resistors, ICs, Controllers" required>
+
+  <label>Category Image URL</label>
+  <input type="url" id="catImage" placeholder="Paste image link">
+
+  <button type="button" onclick="addCategory()">➕ Add Category</button>
+  <div class="preview" id="catPreview"></div>
+</form>
+
+<!-- Add Product -->
+<h2>Add New Product</h2>
+<form id="productForm">
+  <label>Product Name</label>
+  <input type="text" id="prodName" placeholder="e.g. Arduino Uno" required>
+
+  <label>Description</label>
+  <textarea id="prodDesc" rows="2" placeholder="Short description..."></textarea>
+
+  <label>Price (₹)</label>
+  <input type="number" id="prodPrice" required>
+
+  <label>Quantity</label>
+  <input type="number" id="prodQty" required>
+
+  <label>Category</label>
+  <select id="prodCategory" required>
+    <option value="">--Select Category--</option>
+    <option value="Controllers">Controllers</option>
+    <option value="ICs">ICs</option>
+    <option value="Resistors">Resistors</option>
+    <option value="Capacitors">Capacitors</option>
+    <option value="Sensors">Sensors</option>
+    <option value="Projects">Projects</option>
+  </select>
+
+  <label>Product Image URL</label>
+  <input type="url" id="prodImage" placeholder="Paste image link">
+
+  <button type="button" onclick="addProduct()">➕ Add Product</button>
+  <div class="preview" id="prodPreview"></div>
+</form>
+
+<!-- Preview Added Products -->
+<h2>Preview of Added Products</h2>
+<div class="preview-grid" id="productList"></div>
+
+<!-- Logout -->
+<button id="logoutBtn" onclick="logout()">Logout</button>
+
+<script>
+  // Add Category (simple preview)
+  function addCategory() {
+  let name = document.getElementById("catName").value;
+  let image = document.getElementById("catImage").value;
+
+  if (name) {
+    // Show preview message
+    document.getElementById("catPreview").innerText = "✅ Category Added: " + name;
+
+    // Add new category to the dropdown
+    let prodCategory = document.getElementById("prodCategory");
+    let option = document.createElement("option");
+    option.value = name;
+    option.text = name;
+    prodCategory.add(option);
+
+    // Clear form fields
+    document.getElementById("categoryForm").reset();
+  }
+}
+
+  // Add Product + preview
+  function addProduct(){
+    let name = document.getElementById("prodName").value;
+    let desc = document.getElementById("prodDesc").value;
+    let price = document.getElementById("prodPrice").value;
+    let qty = document.getElementById("prodQty").value;
+    let cat = document.getElementById("prodCategory").value;
+    let img = document.getElementById("prodImage").value || "https://via.placeholder.com/150";
+
+    if(name && price && qty && cat){
+      let card = `
+        <div class="card">
+          <img src="${img}" alt="${name}">
+          <h3>${name}</h3>
+          <p>${desc}</p>
+          <div class="price">₹${price} (Qty: ${qty})</div>
+          <p><em>${cat}</em></p>
+        </div>
+      `;
+      document.getElementById("productList").innerHTML += card;
+      document.getElementById("prodPreview").innerText = "✅ Product Added: " + name;
+      document.getElementById("productForm").reset();
+    }
+  }
+
+  // Logout function
+  function logout(){
+    sessionStorage.removeItem("isAdminLoggedIn");
+    window.location.href = "admin-login.html";
+  }
+</script>
+
+</body>
+</html>

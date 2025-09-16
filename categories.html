@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Categories - Shreeram Computers</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      padding-bottom: 70px; /* space for bottom nav */
+    }
+
+    header {
+      background: #222;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    .categories, .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 15px;
+      padding: 20px;
+    }
+
+    .category-card, .product-card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .category-card:hover, .product-card:hover {
+      transform: scale(1.05);
+    }
+
+    .category-card img, .product-card img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 10px;
+    }
+
+    h3 {
+      margin: 10px 0;
+      font-size: 18px;
+    }
+
+    .price {
+      font-size: 16px;
+      color: green;
+      margin: 8px 0;
+    }
+
+    button {
+      margin: 5px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    #back-btn {
+      display: none;
+      margin: 15px;
+      padding: 10px 20px;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* Bottom Navigation */
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #222;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 0;
+      color: white;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    nav a.active {
+      color: #00bfff;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <header>📦 Shreeram Computers - Categories</header>
+
+  <!-- Back Button -->
+  <button id="back-btn" onclick="showCategories()">⬅ Back to Categories</button>
+
+  <!-- Categories Section -->
+  <div class="categories" id="categories-section">
+    <div class="category-card" onclick="loadProducts('controllers')">
+      <img src="chip.png" alt="Controller">
+      <h3>Controllers</h3>
+    </div>
+
+    <div class="category-card" onclick="loadProducts('ics')">
+      <img src="ic-chip.png" alt="ICs">
+      <h3>ICs</h3>
+    </div>
+
+    <div class="category-card" onclick="loadProducts('resistors')">
+      <img src="resistor.png" alt="Resistors">
+      <h3>Resistors</h3>
+    </div>
+
+    <div class="category-card" onclick="loadProducts('capacitors')">
+      <img src="capacitor.png" alt="Capacitors">
+      <h3>Capacitors</h3>
+    </div>
+  </div>
+
+  <!-- Product Section -->
+  <div id="product-section" style="display:none; padding:20px;">
+    <h2 id="category-title"></h2>
+    <div class="product-grid" id="product-grid">
+      <!-- Products load here -->
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav>
+    <a href="index.html">🏠 Home</a>
+    <a href="categories.html" class="active">📂 Categories</a>
+    <a href="sale.html">💰 Sale</a>
+    <a href="profile.html">👤 Profile</a>
+  </nav>
+
+  <script>
+    // Sample Products Data
+    const products = {
+      "controllers": [
+        { name: "Arduino UNO", price: "₹349", image: "chip.png" },
+        { name: "Arduino Nano", price: "₹249", image: "chip.png" },
+        { name: "Raspberry Pi Pico", price: "₹450", image: "chip.png" }
+      ],
+      "ics": [
+        { name: "LM358 IC", price: "₹20", image: "ic-chip.png" },
+        { name: "NE555 Timer", price: "₹15", image: "ic-chip.png" },
+        { name: "ATmega328P", price: "₹180", image: "ic-chip.png" }
+      ],
+      "resistors": [
+        { name: "10kΩ Resistor Pack (100 pcs)", price: "₹40", image: "resistor.png" },
+        { name: "1kΩ Resistor Pack (100 pcs)", price: "₹35", image: "resistor.png" }
+      ],
+      "capacitors": [
+        { name: "100uF Capacitor", price: "₹5", image: "capacitor.png" },
+        { name: "470uF Capacitor", price: "₹10", image: "capacitor.png" }
+      ]
+    };
+
+    function loadProducts(category) {
+      document.getElementById("categories-section").style.display = "none";
+      document.getElementById("back-btn").style.display = "block";
+      document.getElementById("product-section").style.display = "block";
+      document.getElementById("category-title").innerText = category.toUpperCase();
+
+      let grid = document.getElementById("product-grid");
+      grid.innerHTML = "";
+
+      products[category].forEach(p => {
+        grid.innerHTML += `
+          <div class="product-card">
+            <img src="${p.image}" alt="${p.name}">
+            <h3>${p.name}</h3>
+            <div class="price">${p.price}</div>
+            <button>❤ Wishlist</button>
+            <button>🛒 Add to Cart</button>
+          </div>
+        `;
+      });
+    }
+
+    function showCategories() {
+      document.getElementById("categories-section").style.display = "grid";
+      document.getElementById("product-section").style.display = "none";
+      document.getElementById("back-btn").style.display = "none";
+    }
+  </script>
+
+</body>
+</html>
