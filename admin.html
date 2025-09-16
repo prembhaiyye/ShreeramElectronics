@@ -186,7 +186,7 @@
   import { addCategory as addCategoryDb, addProduct as addProductDb } from './firebase-config.js';
 
   // Add Category (simple preview)
-  function addCategory() {
+  async function addCategory() {
   let name = document.getElementById("catName").value;
   let image = document.getElementById("catImage").value || "https://via.placeholder.com/150";
 
@@ -201,7 +201,7 @@
     }
 
     // Persist to Firestore
-    try { addCategoryDb({ name: name, image: image }); } catch(e) { /* noop */ }
+    try { await addCategoryDb({ name: name, image: image }); } catch(e) { document.getElementById("catPreview").innerText = "❌ Failed to add category: " + (e.message || e); return; }
 
     // Show preview message
     document.getElementById("catPreview").innerText = "✅ Category Added: " + name;
@@ -219,7 +219,7 @@
 }
 
   // Add Product + preview
-  function addProduct(){
+  async function addProduct(){
     let name = document.getElementById("prodName").value;
     let desc = document.getElementById("prodDesc").value;
     let price = document.getElementById("prodPrice").value;
@@ -230,8 +230,8 @@
     if(name && price && qty && cat){
       // Persist to Firestore
       try { 
-        addProductDb({ name: name, description: desc, price: Number(price), availableQty: Number(qty), category: cat, image: img });
-      } catch(e) { /* noop */ }
+        await addProductDb({ name: name, description: desc, price: Number(price), availableQty: Number(qty), category: cat, image: img });
+      } catch(e) { document.getElementById("prodPreview").innerText = "❌ Failed to add product: " + (e.message || e); return; }
 
       // Preview card
       let card = `

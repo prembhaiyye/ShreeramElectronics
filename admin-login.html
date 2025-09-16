@@ -63,20 +63,20 @@
     <div class="error" id="errorMsg"></div>
   </div>
 
-  <script>
-    function login() {
-      const email = document.getElementById("email").value;
+  <script type="module">
+    import { loginWithEmailPassword } from './firebase-config.js';
+
+    window.login = async function() {
+      const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
-
-      // Hardcoded credentials
-      const adminEmail = "admin@shreeram.com";
-      const adminPassword = "123456";
-
-      if(email === adminEmail && password === adminPassword){
+      const errEl = document.getElementById("errorMsg");
+      errEl.innerText = '';
+      try {
+        await loginWithEmailPassword(email, password);
         sessionStorage.setItem("isAdminLoggedIn", "true");
-        window.location.href = "admin.html"; // Redirect to admin panel
-      } else {
-        document.getElementById("errorMsg").innerText = "❌ Invalid Email or Password!";
+        window.location.href = "admin.html";
+      } catch (e) {
+        errEl.innerText = "❌ " + (e && e.message ? e.message : 'Login failed');
       }
     }
   </script>
