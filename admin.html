@@ -252,6 +252,10 @@
     }
   }
 
+  // Expose functions for onclick handlers
+  window.addCategory = addCategory;
+  window.addProduct = addProduct;
+
   // Logout function
   function logout(){
     sessionStorage.removeItem("isAdminLoggedIn");
