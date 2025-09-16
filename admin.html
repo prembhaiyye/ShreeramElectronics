@@ -182,13 +182,27 @@
 <!-- Logout -->
 <button id="logoutBtn" onclick="logout()">Logout</button>
 
-<script>
+<script type="module">
+  import { addCategory as addCategoryDb, addProduct as addProductDb } from './firebase-config.js';
+
   // Add Category (simple preview)
   function addCategory() {
   let name = document.getElementById("catName").value;
-  let image = document.getElementById("catImage").value;
+  let image = document.getElementById("catImage").value || "https://via.placeholder.com/150";
 
   if (name) {
+    // Persist to localStorage
+    let categories = [];
+    try { categories = JSON.parse(localStorage.getItem("categories") || "[]"); } catch(e){ categories = []; }
+    // prevent duplicates by name (case-insensitive)
+    if(!categories.find(c => (c.name || "").toLowerCase() === name.toLowerCase())){
+      categories.push({ name: name, image: image });
+      localStorage.setItem("categories", JSON.stringify(categories));
+    }
+
+    // Persist to Firestore
+    try { addCategoryDb({ name: name, image: image }); } catch(e) { /* noop */ }
+
     // Show preview message
     document.getElementById("catPreview").innerText = "✅ Category Added: " + name;
 
@@ -214,6 +228,12 @@
     let img = document.getElementById("prodImage").value || "https://via.placeholder.com/150";
 
     if(name && price && qty && cat){
+      // Persist to Firestore
+      try { 
+        addProductDb({ name: name, description: desc, price: Number(price), availableQty: Number(qty), category: cat, image: img });
+      } catch(e) { /* noop */ }
+
+      // Preview card
       let card = `
         <div class="card">
           <img src="${img}" alt="${name}">

@@ -86,6 +86,50 @@
       display: block;
       font-size: 1.3em;
     }
+
+    /* Wishlist & Cart Sections */
+    .section {
+      margin: 20px;
+    }
+    .section h2 {
+      margin: 0 0 10px 0;
+      font-size: 1.1em;
+    }
+    .list-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 10px;
+      text-align: center;
+    }
+    .card img {
+      width: 100%;
+      height: 120px;
+      object-fit: contain;
+    }
+    .card h3 {
+      margin: 8px 0 4px;
+      font-size: 1em;
+    }
+    .price { color: green; font-weight: bold; }
+    .btn {
+      margin: 5px 4px 0 4px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      background: #2c3e50;
+      color: white;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+    .btn.secondary { background: #007bff; }
+    .btn.danger { background: #e74c3c; }
+    .empty { color: #666; text-align: center; padding: 10px 0; }
   </style>
 </head>
 <body>
@@ -102,9 +146,27 @@
   <!-- Profile Options -->
   <div class="options">
     <a href="#">📦 My Orders</a>
-    <a href="#">❤ My Wishlist</a>
+    <a href="#wishlist">❤ My Wishlist</a>
+    <a href="#cart">🛒 My Cart</a>
     <a href="#">⚙ Account Settings</a>
     <a href="#">🚪 Logout</a>
+  </div>
+
+  <!-- Wishlist Section -->
+  <div id="wishlist" class="section">
+    <h2>❤ My Wishlist</h2>
+    <div id="wishlistGrid" class="list-grid"></div>
+    <div id="wishlistEmpty" class="empty" style="display:none;">No items in wishlist.</div>
+  </div>
+
+  <!-- Cart Section -->
+  <div id="cart" class="section">
+    <h2>🛒 My Cart</h2>
+    <div id="cartGrid" class="list-grid"></div>
+    <div id="cartEmpty" class="empty" style="display:none;">Your cart is empty.</div>
+    <div id="cartActions" style="margin-top:10px; display:none;">
+      <a class="btn secondary" href="cart.html">Go to Cart</a>
+    </div>
   </div>
 
   <!-- Bottom Navigation -->
@@ -113,6 +175,84 @@
     <a href="categories.html"><span>📂</span>Categories</a>
     <a href="sale.html"><span>🛒</span>Sale</a>
     <a href="profile.html"><span>👤</span>Profile</a>
+    <a href="cart.html"><span>🧺</span>Cart</a>
   </nav>
+
+  <script>
+    function getList(key){
+      try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch(e){ return []; }
+    }
+    function saveList(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+
+    function formatINR(value){ return "₹" + Number(String(value).replace(/[^0-9.]/g, ''));
+    }
+
+    function renderWishlist(){
+      const grid = document.getElementById('wishlistGrid');
+      const empty = document.getElementById('wishlistEmpty');
+      const items = getList('wishlist');
+      grid.innerHTML = '';
+      if(!items.length){ empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      items.forEach((p, idx) => {
+        const priceNum = Number(String(p.price).replace(/[^0-9.]/g, '')) || 0;
+        grid.innerHTML += `
+          <div class="card">
+            <img src="${p.image || 'https://via.placeholder.com/150'}" alt="${p.name}">
+            <h3>${p.name}</h3>
+            <div class="price">${priceNum ? '₹' + priceNum : ''}</div>
+            <button class="btn secondary" onclick="moveToCart(${idx})">Add to Cart</button>
+            <button class="btn danger" onclick="removeFromWishlist(${idx})">Remove</button>
+          </div>
+        `;
+      });
+    }
+
+    function renderCartPreview(){
+      const grid = document.getElementById('cartGrid');
+      const empty = document.getElementById('cartEmpty');
+      const actions = document.getElementById('cartActions');
+      const items = getList('cart');
+      grid.innerHTML = '';
+      if(!items.length){ empty.style.display = 'block'; actions.style.display = 'none'; return; }
+      empty.style.display = 'none'; actions.style.display = 'block';
+      items.forEach((p) => {
+        const priceNum = Number(String(p.price).replace(/[^0-9.]/g, '')) || 0;
+        grid.innerHTML += `
+          <div class="card">
+            <img src="${p.image || 'https://via.placeholder.com/150'}" alt="${p.name}">
+            <h3>${p.name}</h3>
+            <div class="price">${priceNum ? '₹' + priceNum : ''}</div>
+          </div>
+        `;
+      });
+    }
+
+    function removeFromWishlist(index){
+      const list = getList('wishlist');
+      list.splice(index, 1);
+      saveList('wishlist', list);
+      renderWishlist();
+    }
+
+    function moveToCart(index){
+      const wishlist = getList('wishlist');
+      const item = wishlist[index];
+      const cart = getList('cart');
+      const existing = cart.findIndex(c => c.name === item.name);
+      if(existing >= 0){ cart[existing].qty = (cart[existing].qty || 1) + 1; }
+      else { cart.push({ ...item, qty: 1 }); }
+      saveList('cart', cart);
+      wishlist.splice(index, 1);
+      saveList('wishlist', wishlist);
+      renderWishlist();
+      renderCartPreview();
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+      renderWishlist();
+      renderCartPreview();
+    });
+  </script>
 </body>
 </html>

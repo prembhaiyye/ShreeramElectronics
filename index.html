@@ -132,44 +132,14 @@
 
   <!-- Recently Searched -->
   <section>
-    <h2>🔍 Recently Searched</h2>
-    <div class="product-grid">
-      <div class="product-card">
-        <img src="chip.png" alt="Arduino Uno">
-        <h3>Arduino UNO</h3>
-        <div class="price">₹349</div>
-        <button>❤ Wishlist</button>
-        <button>🛒 Add to Cart</button>
-      </div>
-      <div class="product-card">
-        <img src="ic-chip.png" alt="NE555 Timer">
-        <h3>NE555 Timer</h3>
-        <div class="price">₹15</div>
-        <button>❤ Wishlist</button>
-        <button>🛒 Add to Cart</button>
-      </div>
-    </div>
+    <h2>🆕 Latest Products</h2>
+    <div id="latest-grid" class="product-grid"></div>
   </section>
 
-  <!-- New Arrivals -->
+  <!-- Featured categories from admin -->
   <section>
-    <h2>🆕 New Arrivals</h2>
-    <div class="product-grid">
-      <div class="product-card">
-        <img src="chip.png" alt="Raspberry Pi Pico">
-        <h3>Raspberry Pi Pico</h3>
-        <div class="price">₹450</div>
-        <button>❤ Wishlist</button>
-        <button>🛒 Add to Cart</button>
-      </div>
-      <div class="product-card">
-        <img src="resistor.png" alt="10kΩ Resistor Pack">
-        <h3>10kΩ Resistor Pack (100 pcs)</h3>
-        <div class="price">₹40</div>
-        <button>❤ Wishlist</button>
-        <button>🛒 Add to Cart</button>
-      </div>
-    </div>
+    <h2>📂 Categories</h2>
+    <div id="home-categories" class="product-grid"></div>
   </section>
 
   <!-- Offers -->
@@ -192,6 +162,78 @@
     <a href="categories.html">📂 Categories</a>
     <a href="sale.html">💰 Sale</a>
     <a href="profile.html">👤 Profile</a>
+    <a href="cart.html">🛒 Cart</a>
   </nav>
+
+  <script type="module">
+    import { fetchLatestProducts, fetchCategories } from './firebase-config.js';
+
+    function truncate(text, max){
+      if(!text) return '';
+      return text.length > max ? text.slice(0, max - 1) + '…' : text;
+    }
+
+    async function renderLatestProducts(){
+      const grid = document.getElementById('latest-grid');
+      grid.innerHTML = '';
+      const products = await fetchLatestProducts(6);
+      if(!products || !products.length){
+        grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#666;">No products yet. Add some in Admin.</div>';
+        return;
+      }
+      products.forEach(p => {
+        grid.innerHTML += `
+          <div class="product-card">
+            <img src="${p.image}" alt="${p.name}">
+            <h3>${truncate(p.name, 40)}</h3>
+            <div class="price">₹${p.price}</div>
+            <button onclick="window.addToWishlist(${encodeURIComponent(JSON.stringify(p))})">❤ Wishlist</button>
+            <button onclick="window.addToCart(${encodeURIComponent(JSON.stringify(p))})">🛒 Add to Cart</button>
+          </div>
+        `;
+      });
+    }
+
+    async function renderHomeCategories(){
+      const grid = document.getElementById('home-categories');
+      grid.innerHTML = '';
+      const categories = await fetchCategories();
+      if(!categories || !categories.length){
+        grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#666;">No categories yet. Add some in Admin.</div>';
+        return;
+      }
+      categories.forEach(c => {
+        grid.innerHTML += `
+          <div class="product-card" onclick="window.location.href='categories.html#${encodeURIComponent(c.name)}'">
+            <img src="${c.image}" alt="${c.name}">
+            <h3>${c.name}</h3>
+          </div>
+        `;
+      });
+    }
+
+    window.addToWishlist = function(pStr){
+      const p = JSON.parse(decodeURIComponent(pStr));
+      const list = JSON.parse(localStorage.getItem('wishlist') || '[]');
+      if(!list.find(x => x.name === p.name)) list.push({ name: p.name, price: p.price, image: p.image });
+      localStorage.setItem('wishlist', JSON.stringify(list));
+      window.location.href = 'profile.html#wishlist';
+    }
+
+    window.addToCart = function(pStr){
+      const p = JSON.parse(decodeURIComponent(pStr));
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      const idx = cart.findIndex(x => x.name === p.name);
+      if(idx >= 0){ cart[idx].qty = (cart[idx].qty || 1) + 1; }
+      else { cart.push({ name: p.name, price: p.price, image: p.image, qty: 1 }); }
+      localStorage.setItem('cart', JSON.stringify(cart));
+      window.location.href = 'cart.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+      renderLatestProducts();
+      renderHomeCategories();
+    });
+  </script>
 </body>
 </html>

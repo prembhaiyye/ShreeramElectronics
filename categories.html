@@ -122,27 +122,7 @@
   <button id="back-btn" onclick="showCategories()">⬅ Back to Categories</button>
 
   <!-- Categories Section -->
-  <div class="categories" id="categories-section">
-    <div class="category-card" onclick="loadProducts('controllers')">
-      <img src="chip.png" alt="Controller">
-      <h3>Controllers</h3>
-    </div>
-
-    <div class="category-card" onclick="loadProducts('ics')">
-      <img src="ic-chip.png" alt="ICs">
-      <h3>ICs</h3>
-    </div>
-
-    <div class="category-card" onclick="loadProducts('resistors')">
-      <img src="resistor.png" alt="Resistors">
-      <h3>Resistors</h3>
-    </div>
-
-    <div class="category-card" onclick="loadProducts('capacitors')">
-      <img src="capacitor.png" alt="Capacitors">
-      <h3>Capacitors</h3>
-    </div>
-  </div>
+  <div class="categories" id="categories-section"></div>
 
   <!-- Product Section -->
   <div id="product-section" style="display:none; padding:20px;">
@@ -158,32 +138,31 @@
     <a href="categories.html" class="active">📂 Categories</a>
     <a href="sale.html">💰 Sale</a>
     <a href="profile.html">👤 Profile</a>
+    <a href="cart.html">🛒 Cart</a>
   </nav>
 
-  <script>
-    // Sample Products Data
-    const products = {
-      "controllers": [
-        { name: "Arduino UNO", price: "₹349", image: "chip.png" },
-        { name: "Arduino Nano", price: "₹249", image: "chip.png" },
-        { name: "Raspberry Pi Pico", price: "₹450", image: "chip.png" }
-      ],
-      "ics": [
-        { name: "LM358 IC", price: "₹20", image: "ic-chip.png" },
-        { name: "NE555 Timer", price: "₹15", image: "ic-chip.png" },
-        { name: "ATmega328P", price: "₹180", image: "ic-chip.png" }
-      ],
-      "resistors": [
-        { name: "10kΩ Resistor Pack (100 pcs)", price: "₹40", image: "resistor.png" },
-        { name: "1kΩ Resistor Pack (100 pcs)", price: "₹35", image: "resistor.png" }
-      ],
-      "capacitors": [
-        { name: "100uF Capacitor", price: "₹5", image: "capacitor.png" },
-        { name: "470uF Capacitor", price: "₹10", image: "capacitor.png" }
-      ]
-    };
+  <script type="module">
+    import { fetchCategories, fetchProductsByCategory } from './firebase-config.js';
 
-    function loadProducts(category) {
+    async function renderCategories(){
+      const container = document.getElementById('categories-section');
+      container.innerHTML = '';
+      const categories = await fetchCategories();
+      if(!categories || !categories.length){
+        container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#666;">No categories yet. Add some in Admin.</div>';
+        return;
+      }
+      categories.forEach(c => {
+        container.innerHTML += `
+          <div class="category-card" onclick="loadProducts('${c.name.replace(/'/g, "&#39;")}')">
+            <img src="${c.image}" alt="${c.name}">
+            <h3>${c.name}</h3>
+          </div>
+        `;
+      });
+    }
+
+    window.loadProducts = async function(category) {
       document.getElementById("categories-section").style.display = "none";
       document.getElementById("back-btn").style.display = "block";
       document.getElementById("product-section").style.display = "block";
@@ -192,24 +171,57 @@
       let grid = document.getElementById("product-grid");
       grid.innerHTML = "";
 
-      products[category].forEach(p => {
+      const products = await fetchProductsByCategory(category);
+      if(!products || !products.length){
+        grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#666;">No products found in this category.</div>';
+        return;
+      }
+      products.forEach(p => {
         grid.innerHTML += `
           <div class="product-card">
             <img src="${p.image}" alt="${p.name}">
             <h3>${p.name}</h3>
-            <div class="price">${p.price}</div>
-            <button>❤ Wishlist</button>
-            <button>🛒 Add to Cart</button>
+            <div class="price">₹${p.price}</div>
+            <button onclick="window.addToWishlist(${encodeURIComponent(JSON.stringify({name:p.name, price:p.price, image:p.image}))})">❤ Wishlist</button>
+            <button onclick="window.addToCart(${encodeURIComponent(JSON.stringify({name:p.name, price:p.price, image:p.image}))})">🛒 Add to Cart</button>
           </div>
         `;
       });
     }
 
-    function showCategories() {
+    window.showCategories = function() {
       document.getElementById("categories-section").style.display = "grid";
       document.getElementById("product-section").style.display = "none";
       document.getElementById("back-btn").style.display = "none";
     }
+
+    window.addToWishlist = function(pStr){
+      const p = JSON.parse(decodeURIComponent(pStr));
+      const list = JSON.parse(localStorage.getItem('wishlist') || '[]');
+      if(!list.find(x => x.name === p.name)) list.push(p);
+      localStorage.setItem('wishlist', JSON.stringify(list));
+      window.location.href = 'profile.html#wishlist';
+    }
+
+    window.addToCart = function(pStr){
+      const p = JSON.parse(decodeURIComponent(pStr));
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      const idx = cart.findIndex(x => x.name === p.name);
+      if(idx >= 0){ cart[idx].qty = (cart[idx].qty || 1) + 1; }
+      else { cart.push({ ...p, qty: 1 }); }
+      localStorage.setItem('cart', JSON.stringify(cart));
+      window.location.href = 'cart.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+      renderCategories();
+      // deep-link to category if hash provided
+      const hash = decodeURIComponent(location.hash.replace('#',''));
+      if(hash){
+        // delay to allow DOM paint
+        setTimeout(() => window.loadProducts(hash), 0);
+      }
+    });
   </script>
 
 </body>

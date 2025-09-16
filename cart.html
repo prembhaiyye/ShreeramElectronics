@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart - Shreeram Computers</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      padding-bottom: 120px; /* space for bottom nav + checkout bar */
+    }
+
+    header {
+      background: #222;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    .container {
+      padding: 15px;
+    }
+
+    .cart-item {
+      background: #fff;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: grid;
+      grid-template-columns: 70px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .cart-item img {
+      width: 70px;
+      height: 70px;
+      object-fit: contain;
+    }
+
+    .item-info h3 {
+      margin: 0 0 6px 0;
+      font-size: 16px;
+    }
+
+    .price {
+      color: green;
+      font-weight: bold;
+    }
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .qty-controls button {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .qty-controls span {
+      min-width: 22px;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .empty {
+      text-align: center;
+      color: #666;
+      margin-top: 40px;
+    }
+
+    .summary {
+      position: fixed;
+      bottom: 60px;
+      left: 0;
+      width: 100%;
+      background: #fff;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+      padding: 12px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .summary .total-label { color: #333; }
+    .summary .total-value { color: green; font-weight: bold; font-size: 18px; }
+
+    .checkout-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    /* Bottom Navigation */
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #222;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 0;
+      color: white;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    nav a.active {
+      color: #00bfff;
+      font-weight: bold;
+    }
+
+    .remove-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>🛒 Your Cart</header>
+
+  <div class="container">
+    <div id="cart-list"></div>
+    <div id="empty-state" class="empty" style="display:none;">
+      Your cart is empty. <a href="index.html">Continue shopping</a>
+    </div>
+  </div>
+
+  <div class="summary" id="summary" style="display:none;">
+    <div>
+      <div class="total-label">Total</div>
+      <div class="total-value" id="total-price">₹0</div>
+    </div>
+    <button class="checkout-btn" onclick="checkout()">Proceed to Checkout</button>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav>
+    <a href="index.html">🏠 Home</a>
+    <a href="categories.html">📂 Categories</a>
+    <a href="sale.html">💰 Sale</a>
+    <a href="profile.html">👤 Profile</a>
+    <a href="cart.html" class="active">🛒 Cart</a>
+  </nav>
+
+  <script>
+    function getCart(){
+      try {
+        return JSON.parse(localStorage.getItem("cart") || "[]");
+      } catch(e){
+        return [];
+      }
+    }
+
+    function saveCart(items){
+      localStorage.setItem("cart", JSON.stringify(items));
+    }
+
+    function formatINR(value){
+      return "₹" + value.toLocaleString('en-IN');
+    }
+
+    function renderCart(){
+      const listEl = document.getElementById("cart-list");
+      const emptyEl = document.getElementById("empty-state");
+      const summaryEl = document.getElementById("summary");
+      const totalPriceEl = document.getElementById("total-price");
+
+      const items = getCart();
+      listEl.innerHTML = "";
+
+      if(items.length === 0){
+        emptyEl.style.display = "block";
+        summaryEl.style.display = "none";
+        return;
+      }
+
+      emptyEl.style.display = "none";
+      summaryEl.style.display = "flex";
+
+      let total = 0;
+      items.forEach((item, index) => {
+        const priceNumber = Number(String(item.price).replace(/[^0-9.]/g, '')) || 0;
+        total += priceNumber * (item.qty || 1);
+        listEl.innerHTML += `
+          <div class="cart-item">
+            <img src="${item.image || 'https://via.placeholder.com/70'}" alt="${item.name}">
+            <div class="item-info">
+              <h3>${item.name}</h3>
+              <div class="price">${formatINR(priceNumber)}</div>
+              <div class="qty-controls">
+                <button onclick="decrement(${index})">-</button>
+                <span id="qty-${index}">${item.qty || 1}</span>
+                <button onclick="increment(${index})">+</button>
+                <button class="remove-btn" onclick="removeItem(${index})">Remove</button>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div>Subtotal</div>
+              <div class="price">${formatINR(priceNumber * (item.qty || 1))}</div>
+            </div>
+          </div>
+        `;
+      });
+
+      totalPriceEl.textContent = formatINR(total);
+    }
+
+    function increment(index){
+      const items = getCart();
+      items[index].qty = (items[index].qty || 1) + 1;
+      saveCart(items);
+      renderCart();
+    }
+
+    function decrement(index){
+      const items = getCart();
+      const current = items[index].qty || 1;
+      if(current > 1){
+        items[index].qty = current - 1;
+      } else {
+        items.splice(index, 1);
+      }
+      saveCart(items);
+      renderCart();
+    }
+
+    function removeItem(index){
+      const items = getCart();
+      items.splice(index, 1);
+      saveCart(items);
+      renderCart();
+    }
+
+    function checkout(){
+      alert("Checkout not implemented. This is a demo page.");
+    }
+
+    document.addEventListener('DOMContentLoaded', renderCart);
+  </script>
+
+</body>
+</html>
+
+
