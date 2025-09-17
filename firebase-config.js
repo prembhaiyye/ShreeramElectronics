@@ -120,6 +120,32 @@ export async function moveWishlistItemToCart(user, productName) {
   }
 }
 
+// Orders
+export async function createOrderFromCart(user) {
+  if (!user) throw new Error('AUTH_REQUIRED');
+  const items = await fetchUserCart(user);
+  if (!items.length) throw new Error('CART_EMPTY');
+  const total = items.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.qty) || 1), 0);
+  const order = {
+    createdAt: serverTimestamp(),
+    total: total,
+    items: items.map(it => ({ name: it.name, price: Number(it.price) || 0, qty: Number(it.qty) || 1, image: it.image || '' }))
+  };
+  const ref = await addDoc(collection(db, 'users', user.uid, 'orders'), order);
+  // clear cart
+  for (const it of items) {
+    await deleteDoc(cartItemRef(user.uid, it.name));
+  }
+  return { id: ref.id, ...order };
+}
+
+export async function fetchUserOrders(user) {
+  if (!user) return [];
+  const q = query(collection(db, 'users', user.uid, 'orders'), orderBy('createdAt', 'desc'));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
 // Category APIs
 export async function addCategory(category) {
   // category: { name, image }

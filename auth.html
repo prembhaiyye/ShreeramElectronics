@@ -19,7 +19,7 @@
     .links a { color:#007bff; text-decoration:none; }
   </style>
   <script type="module">
-    import { registerWithEmailPassword, loginWithEmailPassword, observeAuth, auth, db, serverTimestamp } from './firebase-config.js';
+    import { registerWithEmailPassword, loginWithEmailPassword, observeAuth } from './firebase-config.js';
 
     window.addEventListener('DOMContentLoaded', () => {
       observeAuth(user => {
@@ -30,64 +30,26 @@
         }
       });
 
-      let isLoginMode = true;
-      const form = document.getElementById('authForm');
+      const formLogin = document.getElementById('login-form');
+      const formReg = document.getElementById('register-form');
       const msg = document.getElementById('msg');
-      const toggleMode = document.getElementById('toggleMode');
-      const formTitle = document.getElementById('formTitle');
-      const submitBtn = document.getElementById('submitBtn');
-      const registerFields = document.getElementById('registerFields');
-      const toggleText = document.getElementById('toggleText');
 
-      toggleMode.addEventListener('click', (e) => {
+      formLogin.addEventListener('submit', async (e) => {
         e.preventDefault();
-        isLoginMode = !isLoginMode;
-        if (isLoginMode) {
-          formTitle.textContent = 'Login';
-          submitBtn.textContent = 'Sign In';
-          toggleText.textContent = 'New here?';
-          toggleMode.textContent = 'Create Account';
-          registerFields.style.display = 'none';
-        } else {
-          formTitle.textContent = 'Register';
-          submitBtn.textContent = 'Create Account';
-          toggleText.textContent = 'Already have an account?';
-          toggleMode.textContent = 'Sign In';
-          registerFields.style.display = 'block';
-        }
         msg.textContent = '';
+        const email = document.getElementById('login-email').value.trim();
+        const pass = document.getElementById('login-pass').value;
+        try { await loginWithEmailPassword(email, pass); }
+        catch (err) { msg.textContent = err.message; }
       });
 
-      form.addEventListener('submit', async (e) => {
+      formReg.addEventListener('submit', async (e) => {
         e.preventDefault();
         msg.textContent = '';
-        const email = document.getElementById('email').value.trim();
-        const pass = document.getElementById('password').value;
-        
-        try {
-          if (isLoginMode) {
-            await loginWithEmailPassword(email, pass);
-          } else {
-            const fullName = document.getElementById('fullName').value.trim();
-            const mobile = document.getElementById('mobileNumber').value.trim();
-            await registerWithEmailPassword(email, pass);
-            // Save additional user data to Firestore
-            if (fullName || mobile) {
-              const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-              const user = auth.currentUser;
-              if (user) {
-                await setDoc(doc(db, 'users', user.uid), {
-                  fullName: fullName || '',
-                  mobileNumber: mobile || '',
-                  email: email,
-                  createdAt: serverTimestamp()
-                }, { merge: true });
-              }
-            }
-          }
-        } catch (err) { 
-          msg.textContent = err.message; 
-        }
+        const email = document.getElementById('reg-email').value.trim();
+        const pass = document.getElementById('reg-pass').value;
+        try { await registerWithEmailPassword(email, pass); }
+        catch (err) { msg.textContent = err.message; }
       });
     });
   </script>
@@ -95,27 +57,25 @@
 <body>
   <header>Login / Register</header>
   <div class="wrap">
-    <h2 id="formTitle">Login</h2>
-    <form id="authForm">
-      <div id="registerFields" style="display:none;">
-        <label>Full Name</label>
-        <input type="text" id="fullName" placeholder="Enter your full name">
-        <label>Mobile Number</label>
-        <input type="tel" id="mobileNumber" placeholder="Enter your mobile number">
-      </div>
-      
+    <h2>Login</h2>
+    <form id="login-form">
       <label>Email</label>
-      <input type="email" id="email" required>
+      <input type="email" id="login-email" required>
       <label>Password</label>
-      <input type="password" id="password" required minlength="6">
-      
-      <button type="submit" id="submitBtn">Sign In</button>
+      <input type="password" id="login-pass" required>
+      <button type="submit">Sign In</button>
     </form>
 
-    <div class="hint">
-      <span id="toggleText">New here?</span>
-      <a href="#" id="toggleMode">Create Account</a>
-    </div>
+    <div class="hint">New here?</div>
+
+    <h2 style="margin-top:14px;">Register</h2>
+    <form id="register-form">
+      <label>Email</label>
+      <input type="email" id="reg-email" required>
+      <label>Password</label>
+      <input type="password" id="reg-pass" required minlength="6">
+      <button type="submit" class="alt">Create Account</button>
+    </form>
 
     <div id="msg" class="msg"></div>
     <div class="links"><a href="index.html">← Back to Home</a></div>

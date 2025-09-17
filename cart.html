@@ -174,7 +174,7 @@
   </nav>
 
   <script type="module">
-    import { observeAuth, fetchUserCart, updateUserCartQty, removeUserCartItem } from './firebase-config.js';
+    import { observeAuth, fetchUserCart, updateUserCartQty, removeUserCartItem, createOrderFromCart } from './firebase-config.js';
     let currentUser = null;
     observeAuth(async user => {
       currentUser = user;
@@ -240,8 +240,16 @@
     window.decrement = async function(name, qty){ const next = (qty || 1) - 1; await updateUserCartQty(currentUser, name, next); await renderCart(); }
     window.removeItem = async function(name){ await removeUserCartItem(currentUser, name); await renderCart(); }
 
-    function checkout(){
-      alert("Checkout not implemented. This is a demo page.");
+    window.checkout = async function(){
+      try {
+        const order = await createOrderFromCart(currentUser);
+        alert('Order placed!');
+        await renderCart();
+        window.location.href = 'orders.html';
+      } catch (e) {
+        if(String(e && e.message) === 'CART_EMPTY') alert('Your cart is empty.');
+        else alert('Failed to place order: ' + (e.message || e));
+      }
     }
 
     // rendering is triggered by auth observer
