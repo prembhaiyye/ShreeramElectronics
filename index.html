@@ -187,8 +187,8 @@
             <img src="${p.image}" alt="${p.name}">
             <h3>${truncate(p.name, 40)}</h3>
             <div class="price">₹${p.price}</div>
-            <button onclick="window.addToWishlist(${encodeURIComponent(JSON.stringify(p))})">❤ Wishlist</button>
-            <button onclick="window.addToCart(${encodeURIComponent(JSON.stringify(p))})">🛒 Add to Cart</button>
+            <button onclick="window.addToWishlist('${encodeURIComponent(JSON.stringify(p))}')">❤ Wishlist</button>
+            <button onclick="window.addToCart('${encodeURIComponent(JSON.stringify(p))}')">🛒 Add to Cart</button>
           </div>
         `;
       });

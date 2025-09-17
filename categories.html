@@ -182,8 +182,8 @@
             <img src="${p.image}" alt="${p.name}">
             <h3>${p.name}</h3>
             <div class="price">₹${p.price}</div>
-            <button onclick="window.addToWishlist(${encodeURIComponent(JSON.stringify({name:p.name, price:p.price, image:p.image}))})">❤ Wishlist</button>
-            <button onclick="window.addToCart(${encodeURIComponent(JSON.stringify({name:p.name, price:p.price, image:p.image}))})">🛒 Add to Cart</button>
+            <button onclick="window.addToWishlist('${encodeURIComponent(JSON.stringify({name:p.name, price:p.price, image:p.image}))}')">❤ Wishlist</button>
+            <button onclick="window.addToCart('${encodeURIComponent(JSON.stringify({name:p.name, price:p.price, image:p.image}))}')">🛒 Add to Cart</button>
           </div>
         `;
       });

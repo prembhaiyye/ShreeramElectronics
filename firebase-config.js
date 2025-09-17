@@ -29,14 +29,19 @@ export const ADMIN_UID = 'k3fh6cMV94Ya1f8S4ooLFI5UIXF3';
 export function isAdminUser(user) {
   return !!(user && user.uid === ADMIN_UID);
 }
-try {
-  const supported = await analyticsIsSupported();
-  if (supported) {
-    analytics = getAnalytics(app);
+// Initialize Analytics only when modules are allowed to await top-level (browsers) and API is supported
+(async () => {
+  try {
+    if (typeof window !== 'undefined' && window.location) {
+      const supported = await analyticsIsSupported();
+      if (supported) {
+        analytics = getAnalytics(app);
+      }
+    }
+  } catch (e) {
+    // ignore analytics failures
   }
-} catch (e) {
-  // Analytics not supported in this environment; ignore
-}
+})();
 
 // Auth helpers
 export function observeAuth(callback) {
